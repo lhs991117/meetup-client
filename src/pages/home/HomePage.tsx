@@ -15,6 +15,9 @@ import useUserStore from '@/stores/user/useUserStore';
 import { CrewSelectRespDto } from '@/types/home/homeAPIType';
 
 import styles from './HomePage.module.scss';
+import classNames from "classnames/bind";
+import { GetAllGeoAPIResponseBody } from "@/apis/server/common/geoAPI.ts";
+import { useGetAllGeoDataQuery } from "@/apis/react-query/common/useGeoQuery.ts";
 
 const HomePage = () => {
   const location = useLocation();
@@ -54,11 +57,89 @@ const HomePage = () => {
     }
   }, [isLogin, userInfoSuccess, userInfo, updateUser]);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const cn = classNames.bind(styles);
+  const [selectedGeo, setSelectedGeo] = useState<GetAllGeoAPIResponseBody>();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredGeos, setFilteredGeos] = useState<GetAllGeoAPIResponseBody[]>(
+    [],
+  );
+  const { GetAllGeoData } = useGetAllGeoDataQuery();
+
+  const filterGeos = (term: string) => {
+    if (!term) {
+      setFilteredGeos([]);
+      return;
+    }
+    const lowerTerm = term.toLowerCase();
+    const filtered =
+      (GetAllGeoData &&
+        GetAllGeoData.filter(
+          (geo) =>
+            geo.city.toLowerCase().includes(lowerTerm) ||
+            geo.district.toLowerCase().includes(lowerTerm) ||
+            geo.county?.toLowerCase().includes(lowerTerm),
+        )) ||
+      [];
+    setFilteredGeos(filtered);
+  };
+
+  const handleSelectGeo = (geo: GetAllGeoAPIResponseBody) => {
+    setSelectedGeo(geo);
+    setSearchTerm('');
+    setFilteredGeos([]);
+    setModalOpen(false);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <HomeHeader />
+        <HomeHeader modalOpen={modalOpen} setModalOpen={setModalOpen} />
       </div>
+
+      {/* 지역 검색 모달 */}
+      {modalOpen && (
+        <>
+          {/* 딤드 배경 */}
+          <div
+            className={cn('modal_background')}
+            onClick={() => setModalOpen(false)}
+          />
+
+          {/* 지역 검색 모달 */}
+          <div className={cn('modal')}>
+            <h2 className={cn('modal_title')}>지역 검색</h2>
+            <input
+              className={cn('modal_search')}
+              type="text"
+              placeholder="지역 검색"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                filterGeos(e.target.value);
+              }}
+            />
+            <ul className={cn('search_list')}>
+              {filteredGeos.map((geo) => (
+                <li
+                  className={cn('search_item')}
+                  key={geo.geoId}
+                  onClick={() => handleSelectGeo(geo)}
+                >
+                  {geo.city} {geo.district}{' '}
+                  {geo.county ? `(${geo.county})` : ''}
+                </li>
+              ))}
+            </ul>
+            <button
+              className={cn('modal_button')}
+              onClick={() => setModalOpen(false)}
+            >
+              X
+            </button>
+          </div>
+        </>
+      )}
 
       {/* 관심사 */}
       <div className={styles.interest_list}>

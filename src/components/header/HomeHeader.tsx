@@ -1,15 +1,13 @@
-import { toast } from 'react-toastify';
-
 import ChevronRightIcon from '@/assets/icons/ChevronRightIcon.svg?react';
 import useUserStore from '@/stores/user/useUserStore';
 
 import styles from './HomeHeader.module.scss';
 
-const HomeHeader = () => {
+const HomeHeader = ({ modalOpen, setModalOpen }) => {
   const { geo } = useUserStore();
 
   const handleClickGeo = () => {
-    toast.info('지역 설정은 준비 중입니다.');
+    setModalOpen(true)
   };
   return (
     <header className={styles.home_header}>
