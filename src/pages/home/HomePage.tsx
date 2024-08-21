@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import {
   useActiveCrewListQuery,
@@ -21,6 +21,7 @@ import { useGetAllGeoDataQuery } from "@/apis/react-query/common/useGeoQuery.ts"
 
 const HomePage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const state = (location.state as { isLogin?: boolean }) || {};
   const isLogin = state.isLogin ? true : false;
@@ -91,6 +92,10 @@ const HomePage = () => {
     setModalOpen(false);
   };
 
+  const handleInterestClick = (interestId: number, name: string) => {
+    navigate(`/crew/interestBigId?interestId=${interestId}&name=${name}`);
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -144,7 +149,13 @@ const HomePage = () => {
       {/* 관심사 */}
       <div className={styles.interest_list}>
         {interestData?.map((interest) => (
-          <div key={interest.interestBigId} className={styles.interest_item}>
+          <div
+            key={interest.interestBigId}
+            className={styles.interest_item}
+            onClick={() =>
+              handleInterestClick(interest.interestBigId!, interest.name)
+            }
+          >
             <span className={styles.interest_icon}>{interest.icon}</span>
             <span className={styles.interest_name}>{interest.name}</span>
           </div>
